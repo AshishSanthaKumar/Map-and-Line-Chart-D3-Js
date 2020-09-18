@@ -72,10 +72,13 @@ function drawMap() {
   // get the min/max GDP values for the selected year
   let extent = getExtentsForYear(yearData);
 
-  // get the selected color scale based on the dropdown value
-  var colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-                     .domain(extent);
+  
 
+  
+  // get the selected color scale based on the dropdown value
+  var colorScale = d3.scaleSequential(d3[d3.select("#color-scale-select").property("value")])
+                     .domain(extent);
+  
   
   // draw the map on the #map svg
   let g = mapSvg.append('g');
@@ -93,16 +96,16 @@ function drawMap() {
       return colorScale(val);
     })
     .on('mouseover', function(d,i) {
-      console.log('mouseover on ' + d.properties.name);
+       console.log('mouseover on ' + d.properties.name);
     })
     .on('mousemove',function(d,i) {
-      console.log('mousemove on ' + d.properties.name);
+       console.log('mousemove on ' + d.properties.name);
     })
     .on('mouseout', function(d,i) {
-      console.log('mouseout on ' + d.properties.name);
+       console.log('mouseout on ' + d.properties.name);
     })
     .on('click', function(d,i) {
-      console.log('clicked on ' + d.properties.name);
+       console.log('clicked on ' + d.properties.name);
     });
     
 }
