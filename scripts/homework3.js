@@ -63,7 +63,8 @@ function drawMap() {
                .projection(projection);
 
   // get the selected year based on the input box's value
-  var year = "2000";
+  // console.log(document.getElementById('year-input').value)
+  var year = document.getElementById('year-input').value;
 
   // get the GDP values for countries for the selected year
   let yearData = timeData.filter( d => d.Year == year)[0];
