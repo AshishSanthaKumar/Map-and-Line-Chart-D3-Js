@@ -1,6 +1,5 @@
 
 var mapSvg;
-
 var lineSvg;
 var lineWidth;
 var lineHeight;
@@ -10,6 +9,7 @@ var lineMargin = { top: 20, right: 60, bottom: 60, left: 100 };
 
 var mapData;
 var timeData;
+
 
 // This runs when the page is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -62,10 +62,12 @@ function drawMap() {
   let path = d3.geoPath()
                .projection(projection);
 
-  // get the selected year based on the input box's value
-  // console.log(document.getElementById('year-input').value)
-  var year = document.getElementById('year-input').value;
+  
 
+  // get the selected year based on the input box's value
+  
+  var year = document.getElementById('year-input').value;
+ 
   // get the GDP values for countries for the selected year
   let yearData = timeData.filter( d => d.Year == year)[0];
   
@@ -79,8 +81,7 @@ function drawMap() {
   var colorScale = d3.scaleSequential(d3[d3.select("#color-scale-select").property("value")])
                      .domain(extent);
   
-  
-  // draw the map on the #map svg
+  //draw the map on the #map svg
   let g = mapSvg.append('g');
   g.selectAll('path')
     .data(mapData.features)
@@ -107,8 +108,54 @@ function drawMap() {
     .on('click', function(d,i) {
        console.log('clicked on ' + d.properties.name);
     });
-    
+  
+  //Legend
+   
+  let barHeight = 20;
+  let height = 100;
+  let width=200;
+
+  leg=mapSvg.selectAll("legend");
+  let axisBottom = g => g
+    .attr("class", `x-axis`)
+    .attr("transform", `translate(0,${height+400})`)
+    .call(d3.axisBottom(axisScale)
+      .ticks(width / 40)
+      .tickSize(-barHeight))
+      .style("font-size",'8px');
+  
+  let axisScale = d3.scaleLinear()
+    .domain(colorScale.domain())
+    .range([30, width]);
+
+  d3.selectAll("legend").remove();
+
+  
+  const defs = mapSvg.append("defs");
+  
+  const linearGradient = defs.append("linearGradient")
+      .attr("id", "linear-gradient");
+  
+  linearGradient.selectAll("stop")
+    .data(colorScale.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorScale(t) })))
+    .enter().append("stop")
+    .attr("offset", d => d.offset)
+    .attr("stop-color", d => d.color);
+  
+    mapSvg.append('g')
+      .attr("transform", `translate(0,${height- barHeight+400})`)
+      .attr("id","legend")
+      .append("rect")
+      .attr('transform', `translate(${30}, 0)`)
+      .attr("width", width)
+      .attr("height", barHeight)
+      .style("fill", "url(#linear-gradient)");
+  
+  mapSvg.append('g')
+    .call(axisBottom);
+  
 }
+
 
 
 // Draw the line chart in the #linechart svg for
@@ -119,3 +166,4 @@ function drawLineChart(country) {
     return;
   
 }
+
