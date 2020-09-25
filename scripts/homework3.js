@@ -6,10 +6,11 @@ var lineHeight;
 var lineInnerHeight;
 var lineInnerWidth;
 var lineMargin = { top: 20, right: 60, bottom: 60, left: 100 };
-
+var country;
 var mapData;
 var timeData;
-
+var gdp;
+var div;
 
 // This runs when the page is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -50,6 +51,14 @@ function getExtentsForYear(yearData) {
   return [min,max];
 }
 
+//tooltip
+
+
+
+
+
+
+
 // Draw the map in the #map svg
 function drawMap() {
 
@@ -74,13 +83,16 @@ function drawMap() {
   // get the min/max GDP values for the selected year
   let extent = getExtentsForYear(yearData);
 
-  
+  div = d3.select("body").append("div")
+     .attr("class", "tooltip-map")
+     .style("opacity", 0);
 
   
   // get the selected color scale based on the dropdown value
   var colorScale = d3.scaleSequential(d3[d3.select("#color-scale-select").property("value")])
                      .domain(extent);
   
+
   //draw the map on the #map svg
   let g = mapSvg.append('g');
   g.selectAll('path')
@@ -97,13 +109,41 @@ function drawMap() {
       return colorScale(val);
     })
     .on('mouseover', function(d,i) {
-      console.log('mouseover on ' + d.properties.name);
+      d3.select(this).transition()
+               .duration('50')
+               .attr('opacity', '.85');
+          div.transition()
+               .duration(50)
+               .style("opacity", 1);
+          country = d.properties.name;
+          gdp = +yearData[d.properties.name];
+          console.log(gdp);
+          div.html("Country: "+country +"<br/> GDP:"+gdp)
+               .style("left", (d3.event.pageX + 10) + "px")
+               .style("top", (d3.event.pageY - 15) + "px");
+               
     })
     .on('mousemove',function(d,i) {
-       console.log('mousemove on ' + d.properties.name);
+          d3.select(this).transition()
+          .duration('50')
+          .attr('opacity', '.85');
+    div.transition()
+          .duration(50)
+          .style("opacity", 1);
+    country = d.properties.name;
+    gdp = +yearData[d.properties.name];
+          console.log(gdp);
+          div.html("Country: "+country+"<br/>GDP:   "+gdp)
+               .style("left", (d3.event.pageX + 10) + "px")
+               .style("top", (d3.event.pageY - 15) + "px");
     })
     .on('mouseout', function(d,i) {
-       console.log('mouseout on ' + d.properties.name);
+      d3.select(this).transition()
+               .duration('50')
+               .attr('opacity', '1');
+          div.transition()
+               .duration('50')
+               .style("opacity", 0);
     })
     .on('click', function(d,i) {
        console.log('clicked on ' + d.properties.name);
@@ -155,6 +195,11 @@ function drawMap() {
     
   mapSvg.append('g')
     .call(axisBottom);
+  
+
+
+  
+
   
 }
 
