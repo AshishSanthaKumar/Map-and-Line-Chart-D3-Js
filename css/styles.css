@@ -22,7 +22,15 @@ html {
 
 .countrymap {
   stroke: black;
+  stroke-width: 1px;
 }
+
+.countrymap:hover {
+  stroke-width: 4px;
+  stroke: cyan;
+  
+}
+
 
 
 h2, h3 {

@@ -97,7 +97,7 @@ function drawMap() {
       return colorScale(val);
     })
     .on('mouseover', function(d,i) {
-       console.log('mouseover on ' + d.properties.name);
+      console.log('mouseover on ' + d.properties.name);
     })
     .on('mousemove',function(d,i) {
        console.log('mousemove on ' + d.properties.name);
@@ -111,46 +111,48 @@ function drawMap() {
   
   //Legend
    
-  let barHeight = 20;
+  d3.select(".legend").remove();
+  d3.select(".x-axis").remove();
+  d3.select(".lg").remove();
+  
   let height = 100;
-  let width=200;
+  let barHeight = 20;
+  let width = 200;  
 
-  leg=mapSvg.selectAll("legend");
   let axisBottom = g => g
     .attr("class", `x-axis`)
     .attr("transform", `translate(0,${height+400})`)
     .call(d3.axisBottom(axisScale)
       .ticks(width / 40)
       .tickSize(-barHeight))
-      .style("font-size",'8px');
+      .style("font-size","8px");
   
   let axisScale = d3.scaleLinear()
     .domain(colorScale.domain())
-    .range([30, width]);
-
-  d3.selectAll("legend").remove();
-
+    .range([30, width+30]);
   
   const defs = mapSvg.append("defs");
   
   const linearGradient = defs.append("linearGradient")
-      .attr("id", "linear-gradient");
+      .attr("id", "linear-gradient")
+      .attr("class","lg");
   
   linearGradient.selectAll("stop")
     .data(colorScale.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorScale(t) })))
     .enter().append("stop")
     .attr("offset", d => d.offset)
-    .attr("stop-color", d => d.color);
+    .attr("stop-color", d => d.color)
+    ;
   
-    mapSvg.append('g')
-      .attr("transform", `translate(0,${height- barHeight+400})`)
-      .attr("id","legend")
-      .append("rect")
-      .attr('transform', `translate(${30}, 0)`)
-      .attr("width", width)
-      .attr("height", barHeight)
-      .style("fill", "url(#linear-gradient)");
-  
+  mapSvg.append('g')
+    .attr("transform", `translate(0,${height- barHeight+400})`)
+    .attr("class","legend")
+    .append("rect")
+    .attr('transform', `translate(${30}, 0)`)
+    .attr("width", width)
+    .attr("height", barHeight)
+    .style("fill", "url(#linear-gradient)");
+    
   mapSvg.append('g')
     .call(axisBottom);
   
