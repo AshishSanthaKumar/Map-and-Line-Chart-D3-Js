@@ -47,3 +47,9 @@ div.tooltip-map {
 h2, h3 {
   text-align:center;
 }
+
+.line2 {
+  fill: none;
+  stroke: #e00007;;
+  stroke-width: 2px;
+}

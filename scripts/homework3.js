@@ -11,6 +11,15 @@ var mapData;
 var timeData;
 var gdp;
 var div;
+var xscale;
+var yscale;
+var width;
+var height;
+var valueline;
+var selectedCountry;
+var countryGdp;
+
+
 
 // This runs when the page is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -50,12 +59,6 @@ function getExtentsForYear(yearData) {
   }
   return [min,max];
 }
-
-//tooltip
-
-
-
-
 
 
 
@@ -117,7 +120,6 @@ function drawMap() {
                .style("opacity", 1);
           country = d.properties.name;
           gdp = +yearData[d.properties.name];
-          console.log(gdp);
           div.html("Country: "+country +"<br/> GDP:"+gdp)
                .style("left", (d3.event.pageX + 10) + "px")
                .style("top", (d3.event.pageY - 15) + "px");
@@ -132,7 +134,6 @@ function drawMap() {
           .style("opacity", 1);
     country = d.properties.name;
     gdp = +yearData[d.properties.name];
-          console.log(gdp);
           div.html("Country: "+country+"<br/>GDP:   "+gdp)
                .style("left", (d3.event.pageX + 10) + "px")
                .style("top", (d3.event.pageY - 15) + "px");
@@ -146,7 +147,7 @@ function drawMap() {
                .style("opacity", 0);
     })
     .on('click', function(d,i) {
-       console.log('clicked on ' + d.properties.name);
+      drawLineChart(d.properties.name);
     });
   
   //Legend
@@ -195,10 +196,6 @@ function drawMap() {
     
   mapSvg.append('g')
     .call(axisBottom);
-  
-
-
-  
 
   
 }
@@ -207,10 +204,44 @@ function drawMap() {
 
 // Draw the line chart in the #linechart svg for
 // the country argument (e.g., `Algeria').
+
 function drawLineChart(country) {
 
+  lineSvg.selectAll("*").remove();
+  console.log(timeData);
+  countryGdp= timeData.map(function(data){
+    if(data[country]==="")
+      data[country]="0"
+
+    return {
+      "year":parseInt(data["Year"]),
+      "GDP":parseInt(data[country])
+    }  
+  });
+
+  console.log(countryGdp);
+
+var year_min = d3.min(countryGdp, function(d) { return d['year']; })
+var year_max = d3.max(countryGdp, function(d) { return d['year']; })
+var gdp_min = d3.min(countryGdp, function(d) { return d['GDP']; })
+var gdp_max = d3.max(countryGdp, function(d) { return d['GDP']; })
+
+  height = 500;
+  margin = ({top: 20, right: 0, bottom: 30, left: 0});
+
+  y = d3.scaleLinear()
+    .domain([0, 2e6])
+    .range([gdp_min, gdp_max]);
+
+  x = d3.scaleTime()
+    .domain([year_min, year_max])
+    .range([margin.left, width - margin.right])
+
+
+
+ 
   if(!country)
     return;
-  
+    
 }
 
