@@ -16,8 +16,8 @@ var yscale;
 var width;
 var height;
 var valueline;
-var selectedCountry;
 var countryGdp;
+var text;
 
 
 
@@ -64,7 +64,7 @@ function getExtentsForYear(yearData) {
 
 // Draw the map in the #map svg
 function drawMap() {
-
+  mapSvg.selectAll("*").remove();
   // create the map projection and geoPath
   let projection = d3.geoMercator()
                       .scale(400)
@@ -112,17 +112,16 @@ function drawMap() {
       return colorScale(val);
     })
     .on('mouseover', function(d,i) {
-      d3.select(this).transition()
-               .duration('50')
-               .attr('opacity', '.85');
-          div.transition()
-               .duration(50)
-               .style("opacity", 1);
-          country = d.properties.name;
-          gdp = +yearData[d.properties.name];
-          div.html("Country: "+country +"<br/> GDP:"+gdp)
-               .style("left", (d3.event.pageX + 10) + "px")
-               .style("top", (d3.event.pageY - 15) + "px");
+      let val = +yearData[d.properties.name];
+      if(isNaN(val)) 
+        val= 'N/A';
+      //Setting Cyan Border and making the tooltip visible
+      d3.select(this).style("stroke", 'cyan').style("stroke-width", 4);
+      div.html("country: "+d.properties.name+" <br /> GDP: "+val)
+      .style("left", (d3.event.pageX + 10) + "px")
+      .style("top", (d3.event.pageY - 15) + "px")
+      .style("visibility", "visible")
+      .attr("data-html", "true");
                
     })
     .on('mousemove',function(d,i) {
@@ -139,15 +138,18 @@ function drawMap() {
                .style("top", (d3.event.pageY - 15) + "px");
     })
     .on('mouseout', function(d,i) {
-      d3.select(this).transition()
-               .duration('50')
-               .attr('opacity', '1');
-          div.transition()
-               .duration('50')
-               .style("opacity", 0);
+      d3.select(this).style("stroke", 'black').style("stroke-width", 1);
+      div.style("visibility", "hidden");
     })
     .on('click', function(d,i) {
-      drawLineChart(d.properties.name);
+      lineSvg.selectAll("*").remove();
+      console.log('clicked on ' + d.properties.name);
+      d3.select(this).style("stroke", 'cyan')
+      .style("stroke-width", 4);
+      let val = +yearData[d.properties.name];
+      //Calling the drawlinechart function if the data is available
+      if(!isNaN(val)) 
+        drawLineChart(d.properties.name);
     });
   
   //Legend
@@ -204,44 +206,177 @@ function drawMap() {
 
 // Draw the line chart in the #linechart svg for
 // the country argument (e.g., `Algeria').
-
 function drawLineChart(country) {
-
-  lineSvg.selectAll("*").remove();
-  console.log(timeData);
+  //country GDP has the data of the GDP across the years for a country
   countryGdp= timeData.map(function(data){
     if(data[country]==="")
       data[country]="0"
-
     return {
-      "year":parseInt(data["Year"]),
-      "GDP":parseInt(data[country])
-    }  
+              "year":parseInt(data["Year"]),
+              "GDP":parseInt(data[country]) 
+            }
   });
 
-  console.log(countryGdp);
+  //Calculating the min and max Year and GDP
+  let min_Year=d3.min(countryGdp, function(d) {  return d.year;});
+  let max_Year=d3.max(countryGdp, function(d) { return d.year;});
+  let min_GDP=d3.min(countryGdp, function(d) { return d.GDP; });
+  let max_GDP=d3.max(countryGdp, function(d) { return d.GDP; });
 
-var year_min = d3.min(countryGdp, function(d) { return d['year']; })
-var year_max = d3.max(countryGdp, function(d) { return d['year']; })
-var gdp_min = d3.min(countryGdp, function(d) { return d['GDP']; })
-var gdp_max = d3.max(countryGdp, function(d) { return d['GDP']; })
-
-  height = 500;
-  margin = ({top: 20, right: 0, bottom: 30, left: 0});
-
-  y = d3.scaleLinear()
-    .domain([0, 2e6])
-    .range([gdp_min, gdp_max]);
-
-  x = d3.scaleTime()
-    .domain([year_min, year_max])
-    .range([margin.left, width - margin.right])
+  //re assigning height,margin and width from lineHeight,lineMargin and lineWidth respectively
+  let height = lineHeight;
+  let margin = lineMargin;
+  let width=lineWidth;
 
 
+  //Scaling the X and Y axis 
+  let yScale = d3.scaleLinear()
+    .domain([min_GDP, max_GDP])
+    .range([height - margin.bottom, margin.top]);
+  let xScale = d3.scaleTime()
+    .domain([new Date(min_Year, 1, 1), new Date(max_Year, 1, 1)])
+    .range([margin.left, width - margin.right]);
 
- 
-  if(!country)
-    return;
+  //Y Axis Label
+  lineSvg.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y",margin.left-60)
+  .attr("x",0 - (height / 2))
+  .attr("dy", "1em")
+  .style("font-family", "sans-serif")
+  .style("font-size", "17px")
+  .style("font-weight",500)
+  .style("text-anchor", "middle")
+  .style("fill","grey")
+  .text("GDP for "+ country+" (based on current USD)");  
+
+  //X Axis label
+  lineSvg.append("text")             
+  .attr("transform",
+        "translate(" + (width/2) + " ," + (height -margin.top) + ")")
+  .style("text-anchor", "middle")
+  .style("font-family", "sans-serif")
+  .style("font-size", "17px")
+  .style("font-weight",500)
+  .style("fill","grey")
+  .text("Year");
     
+  //Drawing the Y Axis using the yScale
+  const yAxis = d3.axisRight(yScale).tickSize(width - margin.left - margin.right);
+  lineSvg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(yAxis)
+            .call(g => g.selectAll(" line")
+        .style("stroke","grey")
+        .attr("stroke-opacity", 0.5)
+        .attr("stroke-dasharray", "5,10"))
+        .call(g => g.selectAll(".tick text")
+        .attr("x", -30))
+        .call(g => g.select(".domain")
+        .remove());
+  
+  //Drawing the X Axis using the X Scale
+  const xAxis = d3.axisBottom(xScale).ticks(d3.timeYear.every(5));
+  lineSvg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .style("font-family", "sans-serif")
+        .call(xAxis)
+        .style("stroke","grey")
+        .attr("class","xAxis");
+    
+  //Ony alternate ticks visible in X Axis      
+  var ticks = d3.selectAll(".xAxis .tick text");
+  ticks.each(function(_,i){
+                            if(i%2 == 0) d3.select(this).remove();
+                          });
+
+  //Rendering the first tick in the X Axis
+  lineSvg 
+    .append("g")
+    .append("text")
+    .text("1960")
+    .style("font-size", "10px")
+    .style("font-family", "sans-serif")
+    .style("fill","grey")
+    .attr("x",margin.left-10)
+    .attr("y",height - margin.bottom+15)
+
+  //Styling the Ticks                        
+  lineSvg.selectAll(".domain").style("stroke","grey");
+  lineSvg.selectAll('g.tick')
+          .select('line')
+          .style('stroke', 'grey'); 
+  lineSvg.selectAll('g.tick')
+          .select('text')
+          .style('color', 'grey'); 
+
+  //Forming the line to draw in the graph
+  const valueline = d3.line()
+        .x(function(d) { return xScale(new Date(d.year, 1, 1));})
+        .y(function(d) { return yScale(d.GDP); });
+  
+  //Adding the line to the SVG
+  lineSvg.append("path")
+      .data([countryGdp])
+      .attr("class", "line")
+      .attr("d", valueline);
+
+   //Tool tip with a focus circle 
+   //Finding the nearest X to the mouse pointer
+  var bisect = d3.bisector(function(d) { return new Date(d.year, 1, 1)}).left;
+
+  // Create the circle that travels along the curve of chart
+  var focus = lineSvg
+              .append('g')
+              .append('circle')
+              .style("fill", "none")
+              .attr("stroke", "black")
+              .attr('r', 10)
+              .style("opacity", 0)
+
+  //Tooltip creatiion
+  var toolTipdiv = d3.select("body")
+    .append("div")
+    .attr("class", "lineGraphTooltip")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden");
+
+  //Setting the area over which tooltip must be enabled and enabling the tooltip on mouse listeners
+  lineSvg
+      .append('rect')
+      .style("fill", "none")
+      .style("pointer-events", "all")
+      .attr('width', width - margin.left - margin.right)
+      .attr('height', height - margin.bottom-margin.top)
+      .attr("x",margin.left )
+      .attr("y", margin.top)
+
+      .on('mouseover', function(){ 
+        focus.style("opacity", 1);
+        toolTipdiv.style("visibility", "visible");
+      })
+
+      .on('mousemove', function() {
+        var x0 = xScale.invert(d3.mouse(this)[0]);
+        var i = bisect(countryGdp, x0, 1);
+        selectedData = countryGdp[i];
+        focus.attr("cx", xScale(new Date(selectedData.year, 1, 1)))
+              .attr("cy", yScale(selectedData.GDP))
+        toolTipdiv.html("Year: "+selectedData.year+" <br /> GDP: "+selectedData.GDP)
+                  .style("left", (d3.event.pageX + 10) + "px")
+                  .style("top", (d3.event.pageY - 15) + "px")
+                  .style("visibility", "visible")
+                  .attr("data-html", "true");  
+        })
+
+      .on('mouseout', function(){
+        focus.style("opacity", 0)
+        toolTipdiv.style("visibility", "hidden");
+        });  
+
+  if(!country)
+    return; 
 }
+
 

@@ -23,7 +23,7 @@ html {
 .countrymap {
   stroke: black;
   stroke-width: 1px;
-}
+} */
 
 .countrymap:hover {
   stroke-width: 4px;
@@ -51,5 +51,31 @@ h2, h3 {
 .line2 {
   fill: none;
   stroke: #e00007;;
+  stroke-width: 2px;
+} */
+
+
+.x-axis line, .x-axis path 
+{
+    stroke: #fff; 
+}
+
+
+div.lineGraphTooltip
+{
+  position: absolute;
+  text-align: center;
+  padding: .5rem;
+  background: #FFFFFF;
+  color: #313639;
+  border: 1px solid #313639;
+  border-radius: 4px;
+  pointer-events: none;
+  font-size: 1rem;
+}
+.line 
+{
+  fill: none;
+  stroke:black;
   stroke-width: 2px;
 }
