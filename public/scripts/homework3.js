@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
   lineInnerHeight = lineHeight - lineMargin.top - lineMargin.bottom;
 
   // Load both files before doing anything else
-  Promise.all([d3.json('data/africa.geojson'),
-               d3.csv('data/africa_gdp_per_capita.csv')])
+  Promise.all([d3.json('https://raw.githubusercontent.com/AshishSanthaKumar/Map-and-Line-Chart-D3-Js/master/data/africa.geojson'),
+               d3.csv('https://raw.githubusercontent.com/AshishSanthaKumar/Map-and-Line-Chart-D3-Js/master/data/africa_gdp_per_capita.csv')])
           .then(function(values){
     
     mapData = values[0];
